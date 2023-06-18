@@ -1,16 +1,22 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Scripts.Collectables;
 using Scripts.Interfaces;
+using TMPro;
 using UnityEngine;
 
 namespace Scripts.DegradableObject
 {
     public class DegradableObjects : MonoBehaviour, IDegradable
     {
-        [SerializeField] private List<Transform> children;
+        private const float ResetTime = 3;
+        private float _tempSpeed;
+        
+        [SerializeField] private List<RockPart> children;
         [SerializeField] private Transform explodeTr;
+        [SerializeField] private TextMeshProUGUI counterText;
 
         private void Awake() => InitVariables();
 
@@ -18,27 +24,48 @@ namespace Scripts.DegradableObject
         {
             foreach (Transform tr in transform.GetChild(0))
             {
-                children.Add(tr);
+                var comp = tr.GetComponent<RockPart>();
+                children.Add(comp);
             }
         }
-        
+
         public void Execute(Transform playerTransform)
         {
             var target = GetAvailablePart();
-            var meshCol = target.GetComponent<MeshCollider>();
-            var rb = target.GetComponent<Rigidbody>();
-            var rockComp = target.GetComponent<RockPart>();
-
-            meshCol.enabled = true;
-            rb.isKinematic = false;
-            Explode(rb);
-            rockComp.canExplode = false;
-            Stack(rockComp, playerTransform);
+            if (target == null) return;
+            
+            target.coll.enabled = true;
+            target.rb.isKinematic = false;
+            Explode(target.rb);
+            target.canExplode = false;
+            Stack(target, playerTransform);
+            
+            if(!CheckChild()) return;
+            StartCoroutine(CounterStart());
         }
 
-        private Transform GetAvailablePart()
+        private IEnumerator CounterStart()
         {
-            var target = children.FirstOrDefault(m => m.GetComponent<RockPart>().canExplode);
+            counterText.gameObject.SetActive(true);
+            _tempSpeed = ResetTime;
+            while (_tempSpeed > 0)
+            {
+                _tempSpeed -= Time.deltaTime;
+                counterText.text = Mathf.RoundToInt(_tempSpeed).ToString();
+                yield return null;
+            }
+            counterText.gameObject.SetActive(false);
+        }
+
+        private bool CheckChild()
+        {
+            var usedCount = children.Count(t => t.canExplode);
+            return usedCount >= children.Count;
+        }
+
+        private RockPart GetAvailablePart()
+        {
+            var target = children.FirstOrDefault(m => m.canExplode);
             return target;
         }
 
@@ -49,7 +76,7 @@ namespace Scripts.DegradableObject
 
         private async void Stack(RockPart rockPart, Transform playerTransform)
         {
-            await Task.Delay(1000);
+            await Task.Delay(800);
             rockPart.Stack(playerTransform);
         }
 
@@ -57,16 +84,14 @@ namespace Scripts.DegradableObject
         {
             foreach (var child in children)
             {
-                var comp = child.GetComponent<RockPart>();
-                var rb = child.GetComponent<Rigidbody>();
-                var meshCol = child.GetComponent<MeshCollider>();
                 var transform1 = child.transform;
 
-                meshCol.enabled = false;
-                rb.isKinematic = true;
-                transform1.localPosition = comp.firstLocalPos;
-                transform1.localRotation = comp.firstLocalRotation;
-                comp.canExplode = true;
+                child.coll.isTrigger = false;
+                child.coll.enabled = false;
+                child.rb.isKinematic = true;
+                transform1.localPosition = child.firstLocalPos;
+                transform1.localRotation = child.firstLocalRotation;
+                child.canExplode = true;
             }
         }
     }
