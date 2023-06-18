@@ -1,5 +1,7 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using DG.Tweening;
+using Scripts.Player;
 using UnityEngine;
 
 namespace Scripts.Collectables
@@ -7,24 +9,24 @@ namespace Scripts.Collectables
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class RockPart : MonoBehaviour
     {
+        private PlayerStackManager _playerStackManager;
+        
         internal MeshCollider coll;
         internal Rigidbody rb;
         
         internal bool canExplode = true;
         internal Vector3 firstLocalPos;
-        internal Quaternion firstLocalRotation;
 
         private void Awake()
         {
-            var transform1 = transform;
+            _playerStackManager = PlayerStackManager.Instance;
             
-            firstLocalPos = transform1.localPosition;
-            firstLocalRotation = transform1.localRotation;
+            firstLocalPos = transform.localPosition;
             coll = GetComponent<MeshCollider>();
             rb = GetComponent<Rigidbody>();
         }
 
-        internal void Stack(Transform playerTransform)
+        internal void Stack(Transform playerTransform, Action onComplete)
         {
             coll.isTrigger = true;
             
@@ -38,11 +40,12 @@ namespace Scripts.Collectables
                 .OnComplete(() =>
                 {
                     gameObject.SetActive(false);
-                    print("stack");
+                    _playerStackManager.Stack();
                 });
 
             sequence.Append(moveTween);
-            sequence.Play();
+            sequence.Play()
+                .OnComplete(onComplete.Invoke);
         }
         
     }

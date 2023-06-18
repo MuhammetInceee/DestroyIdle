@@ -1,11 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DG.Tweening;
 using Scripts.Collectables;
 using Scripts.Interfaces;
 using TMPro;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Scripts.DegradableObject
 {
@@ -29,6 +32,14 @@ namespace Scripts.DegradableObject
             }
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                Time.timeScale = Time.timeScale <= 1.2f ? 2 : 1;
+            }
+        }
+
         public void Execute(Transform playerTransform)
         {
             var target = GetAvailablePart();
@@ -39,16 +50,14 @@ namespace Scripts.DegradableObject
             Explode(target.rb);
             target.canExplode = false;
             Stack(target, playerTransform);
-            
-            if(!CheckChild()) return;
-            StartCoroutine(CounterStart());
         }
 
         private IEnumerator CounterStart()
         {
+            ResetRock();
             counterText.gameObject.SetActive(true);
             _tempSpeed = ResetTime;
-            while (_tempSpeed > 0)
+            while (_tempSpeed > 0f)
             {
                 _tempSpeed -= Time.deltaTime;
                 counterText.text = Mathf.RoundToInt(_tempSpeed).ToString();
@@ -60,7 +69,7 @@ namespace Scripts.DegradableObject
         private bool CheckChild()
         {
             var usedCount = children.Count(t => t.canExplode);
-            return usedCount >= children.Count;
+            return usedCount <= 0;
         }
 
         private RockPart GetAvailablePart()
@@ -77,20 +86,44 @@ namespace Scripts.DegradableObject
         private async void Stack(RockPart rockPart, Transform playerTransform)
         {
             await Task.Delay(800);
-            rockPart.Stack(playerTransform);
+            rockPart.Stack(playerTransform, () =>
+            {
+                if(!CheckChild()) return;
+                StartCoroutine(CounterStart());
+            });
         }
 
-        private void ResetRock()
+        private async void ResetRock()
         {
+            var sequence = DOTween.Sequence();
+            float duration = ResetTime / children.Count;
+            
             foreach (var child in children)
             {
-                var transform1 = child.transform;
-
-                child.coll.isTrigger = false;
+                child.transform.localPosition = child.firstLocalPos + Vector3.up * Random.Range(3f, 5f);
+                
                 child.coll.enabled = false;
                 child.rb.isKinematic = true;
-                transform1.localPosition = child.firstLocalPos;
-                transform1.localRotation = child.firstLocalRotation;
+
+                child.gameObject.SetActive(true);
+                
+                var rotateTween = child.transform.DOLocalRotate(Vector3.zero, 0.3f);
+                var moveTween = child.transform.DOLocalMove(child.firstLocalPos, 0.3f);
+                
+                sequence.Append(rotateTween);
+                sequence.Append(moveTween);
+
+                sequence.Play()
+                    .OnComplete(() =>
+                    {
+                        sequence.Kill();
+                    });
+                
+                await Task.Delay((int)((duration + 0.3f) * 1000));
+            }
+
+            foreach (var child in children)
+            {
                 child.canExplode = true;
             }
         }
