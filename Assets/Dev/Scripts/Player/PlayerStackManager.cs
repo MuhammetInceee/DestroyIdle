@@ -1,6 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using Scripts.Manager;
 using UnityEngine;
 
@@ -33,6 +32,28 @@ namespace Scripts.Player
             
             stackObj.SetActive(true);
             stackedList.Add(stackObj);
+        }
+
+        internal void GiveStack(MachineControl machineControl)
+        {
+            Vector3 startPos = machineControl.firstStackTr.position;
+            var stackOffset = 0.22f;
+
+            while (stackedList.Count > 0)
+            {
+                Vector3 targetPos = startPos + Vector3.up * machineControl.stackedList.Count * stackOffset;
+                GameObject stack = stackedList[^1].gameObject;
+                stack.transform.parent = null;
+                
+                stackedList.Remove(stack);
+                machineControl.stackedList.Add(stack);
+
+                stack.transform.DOMove(targetPos, 0.5f);
+            }
+            
+            
+            
+
         }
     }
 }

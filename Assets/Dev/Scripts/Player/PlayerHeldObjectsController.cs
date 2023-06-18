@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Scripts.Interfaces;
 using Scripts.SOArchitecture;
 using UnityEngine;
 #pragma warning disable CS8524
@@ -11,8 +10,8 @@ namespace Scripts.Player
     {
         [SerializeField] private HeldObjectsTypes Type;
         [SerializeField] private HeldObjectList ObjectList;
-        
-        internal HeldObjects type => new(Type, ObjectList.heldObjects);
+
+        private HeldObjects type => new(Type, ObjectList.heldObjects);
 
         private void Awake() => InitVariables();
 

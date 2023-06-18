@@ -8,11 +8,6 @@ namespace Scripts.Camera
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class CameraShake : MonoBehaviour
     {
-        private float _shakeTimer;
-        private float _shakeTimerTotal;
-        private float _startingIntensity;
-
-        [SerializeField] private CinemachineBrain brain;
         [SerializeField] private CinemachineVirtualCamera gameCMCamera;
 
         public static Action<float, float> CameraShakeAction;
@@ -33,10 +28,6 @@ namespace Scripts.Camera
                 gameCMCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
 
             cinemachineBasicMultiChannelPerlin.m_AmplitudeGain = intensity;
-
-            _startingIntensity = intensity;
-            _shakeTimerTotal = time;
-            _shakeTimer = time;
         }
         
     }

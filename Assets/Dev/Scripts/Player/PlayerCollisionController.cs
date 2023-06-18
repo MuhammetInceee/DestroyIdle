@@ -24,6 +24,11 @@ namespace Scripts.Player
                 _playerController.SetTarget(1);
                 collectable.Execute();
             }
+
+            if (other.TryGetComponent(out MachineControl machineControl))
+            {
+                PlayerStackManager.Instance.GiveStack(machineControl);
+            }
         }
     }
 }
