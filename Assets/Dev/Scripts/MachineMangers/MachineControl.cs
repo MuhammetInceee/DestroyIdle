@@ -11,10 +11,10 @@ public class MachineControl : MonoBehaviour
 {
     private PoolingManager _poolingManager;
     
-    internal List<GameObject> stackedList;
+    public List<GameObject> stackedList;
     [SerializeField] public Transform firstStackTr;
     
-    internal List<GameObject> stackedProductList;
+    public List<GameObject> stackedProductList;
     [SerializeField] public Transform firstProductStackTr;
 
     [SerializeField] private float waitTime;
@@ -41,6 +41,7 @@ public class MachineControl : MonoBehaviour
             stackedProductList.Add(stack);
 
             stack.transform.position = targetPos;
+            stack.SetActive(true);
         }
         
         StartCoroutine(Work());
