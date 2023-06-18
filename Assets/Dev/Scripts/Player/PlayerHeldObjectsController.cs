@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Scripts.Interfaces;
 using Scripts.SOArchitecture;
 using UnityEngine;
 #pragma warning disable CS8524
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace Scripts.Player
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public class PlayerHeldObjectsController : MonoBehaviour
+    public class PlayerHeldObjectsController : Singleton<PlayerHeldObjectsController>
     {
         [SerializeField] private HeldObjectsTypes Type;
         [SerializeField] private HeldObjectList ObjectList;
@@ -20,13 +21,15 @@ namespace Scripts.Player
             type.gObject.SetActive(true);
         }
 
-        private void ChangeHeldObject(HeldObjectsTypes targetType)
+        internal void ChangeHeldObject(HeldObjectsTypes targetType)
         {
             type.gObject.SetActive(false);
             Type = targetType;
             type.gObject.SetActive(true);
         }
     }
+
+    #region HeldObjectsCompenionSystem
     
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum HeldObjectsTypes { destroyer, weapon, cleaner}
@@ -67,4 +70,5 @@ namespace Scripts.Player
             HeldObjectsTypes.cleaner => Resources.Load<FloatVariable>("HeldObjects/Thresholds/CleanerThreshold").value
         };
     }
+    #endregion
 }

@@ -11,10 +11,10 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - CreatorObjects
+  - ProductObjects
+  - Degrades
+  - HeldObjects
   - 
   - 
   - 
